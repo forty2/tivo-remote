@@ -16,7 +16,8 @@ class TiVoRemote extends EventEmitter {
             new MessageSocket(this._ip, service.port, /.*\r/);
 
         socket
-            .on('data', ::this._handleIncoming)
+            .asObservable()
+            .subscribe(::this._handleIncoming);
     }
 
     sendIrcode(code) {
