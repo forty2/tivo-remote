@@ -1,6 +1,6 @@
 {
   "name": "tivo-remote",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Control your TiVo DVR over the network",
   "main": "dist/index.js",
   "scripts": {
@@ -37,7 +37,7 @@
         "env",
         {
           "targets": {
-            "node": 6.0
+            "node": 6
           }
         }
       ]
