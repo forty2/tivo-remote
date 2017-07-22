@@ -6,6 +6,7 @@
 [![NPM version](https://img.shields.io/npm/v/tivo-remote.svg?style=flat-square)](https://npmjs.org/package/tivo-remote)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
 [![Build Status](https://img.shields.io/travis/forty2/tivo-remote/master.svg?style=flat-square)](https://travis-ci.org/forty2/tivo-remote) [![Coverage Status](https://img.shields.io/codecov/c/github/forty2/tivo-remote/master.svg?style=flat-square)](https://codecov.io/gh/forty2/tivo-remote/branch/master)
+[![Greenkeeper badge](https://badges.greenkeeper.io/forty2/tivo-remote.svg)](https://greenkeeper.io/)
 
 `tivo-remote` is a Node.js library that allows you to control your TiVo DVR over your local network.  It's especially useful for integrating into a home automation system.
 
