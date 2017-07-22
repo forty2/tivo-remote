@@ -112,7 +112,7 @@ class TiVoRemote extends EventEmitter {
      * (canceling the recording).
      */
     setChannel(channel: string, forced: ?boolean = false) {
-        this::sendTiVoCommand(forced ? 'FORCCH' : 'SETCH', channel);
+        this::sendTiVoCommand(forced ? 'FORCECH' : 'SETCH', channel);
     }
 
     /**
