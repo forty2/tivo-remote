@@ -6,21 +6,21 @@ const config = {
     address: '127.0.0.1',
     port: 31339,
     name: 'test',
-    TSN: 'FAKE'
+    TSN: 'FAKE',
 };
 
 function timeout(delay) {
     return new Promise(
-        (resolve, reject) => {
+        (resolve) => {
             setTimeout(() => resolve(), delay);
         }
     );
 }
 
 function pad(n, p, c) {
-    var pad_char = typeof c !== 'undefined' ? c : '0';
-    var pad = new Array(1 + p).join(pad_char);
-    return (pad + n).slice(-pad.length);
+    const padChar = typeof c !== 'undefined' ? c : '0';
+    const padding = new Array(1 + p).join(padChar);
+    return (padding + n).slice(-padding.length);
 }
 
 function handleChannelRequest(sock, req) {
@@ -28,35 +28,36 @@ function handleChannelRequest(sock, req) {
 
     let match;
     if ((match = req.match(/^(\d{1,4})(?: (\d{1,4}))?$/))) {
-        let ch = match[1], subch = match[2];
+        let ch = match[1];
+        let subch = match[2];
+
         if (ch) ch /= 1;
         if (subch) subch /= 1;
 
         switch (ch % 10) {
-            case 0: {
-                // channels divisible by 10 should be treated as invalid for testing purposes
-                sock.write('CH_FAILED INVALID_CHANNEL\r');
-                break;
-            }
-
-            case 9: {
-                // these channels indicate "pretend not to be in LIVETV mode"
-                sock.write('CH_FAILED NO_LIVE\r');
-                break;
-            }
-
-            default: {
-                let res = `CH_STATUS ${pad(ch, 4)}`;
-                if (subch) {
-                    res += ` ${pad(subch, 4)}`;
-                }
-                res += ' LOCAL\r'; // TODO: test with other "reason"s?
-                sock.write(res);
-                break;
-            }
+        case 0: {
+            // channels divisible by 10 should be treated as invalid for testing purposes
+            sock.write('CH_FAILED INVALID_CHANNEL\r');
+            break;
         }
-    }
-    else {
+
+        case 9: {
+            // these channels indicate "pretend not to be in LIVETV mode"
+            sock.write('CH_FAILED NO_LIVE\r');
+            break;
+        }
+
+        default: {
+            let res = `CH_STATUS ${pad(ch, 4)}`;
+            if (subch) {
+                res += ` ${pad(subch, 4)}`;
+            }
+            res += ' LOCAL\r'; // TODO: test with other "reason"s?
+            sock.write(res);
+            break;
+        }
+        }
+    } else {
         sock.write('CH_FAILED MALFORMED_CHANNEL\r');
     }
 }
@@ -67,21 +68,24 @@ let handlers = {
         if (req === 'LIVETV') sock.write('LIVETV_READY\r');
     },
     FORCECH: handleChannelRequest,
-    SETCH: handleChannelRequest
+    SETCH: handleChannelRequest,
 };
 
-let server, device;
+let server;
+let device;
 beforeAll(() => {
     server =
         net.createServer(
-            sock => {
+            (sock) => {
                 sock
                     .on('data', (data) => {
                         const req = data.toString();
                         let match;
                         if ((match = req.match(/^([^ ]+) ([^\r]*)\r/))) {
                             const cmd = match[1];
-                            handlers[cmd] && handlers[cmd](sock, match[2]);
+                            if (handlers[cmd]) {
+                                handlers[cmd](sock, match[2]);
+                            }
                         }
                     })
                     .on('close', () => { sock.destroy() });
@@ -100,14 +104,14 @@ beforeAll(() => {
             );
         }
     )
-    .then(() => {
-        device = new TiVoRemote({
-            name: config.name,
-            txtRecord: { TSN: config.TSN },
-            addresses: [ config.address ],
-            port: config.port
+        .then(() => {
+            device = new TiVoRemote({
+                name: config.name,
+                txtRecord: { TSN: config.TSN },
+                addresses: [config.address],
+                port: config.port,
+            });
         });
-    });
 });
 
 describe('construction', () => {
@@ -134,8 +138,8 @@ describe('network', () => {
             TELEPORT(_, msg) {
                 expect(msg).toBe(dest);
                 done();
-            }
-        }
+            },
+        };
         device.teleport(dest);
     });
     it('should send FORCECH commands', (done) => {
@@ -144,8 +148,8 @@ describe('network', () => {
             FORCECH(_, msg) {
                 expect(msg).toBe(channel);
                 done();
-            }
-        }
+            },
+        };
         device.setChannel(channel, true);
     });
     it('should send SETCH commands', (done) => {
@@ -154,8 +158,8 @@ describe('network', () => {
             SETCH(_, msg) {
                 expect(msg).toBe(channel);
                 done();
-            }
-        }
+            },
+        };
         device.setChannel(channel);
     });
     it('should send IRCODE commands', (done) => {
@@ -164,8 +168,8 @@ describe('network', () => {
             IRCODE(_, msg) {
                 expect(msg).toBe(key);
                 done();
-            }
-        }
+            },
+        };
         device.sendIrcode(key);
     });
     it('should send KEYBOARD commands', (done) => {
@@ -174,8 +178,8 @@ describe('network', () => {
             KEYBOARD(_, msg) {
                 expect(msg).toBe(key);
                 done();
-            }
-        }
+            },
+        };
         device.sendKeyboardCode(key);
     });
 
@@ -196,7 +200,7 @@ describe('teleport', () => {
     it('should not fail with an invalid destination', (done) => {
         let gotError = false;
         device.once('error', ({ reason }) => {
-            gotError = true;
+            gotError = !!reason;
         });
 
         timeout(4000)
@@ -271,7 +275,7 @@ describe('set channel', () => {
 afterAll(() =>
     new Promise(
         (resolve, reject) => {
-            device.deinit()
+            device.deinit();
             server.close((err) => {
                 if (err) reject(err);
                 resolve();
