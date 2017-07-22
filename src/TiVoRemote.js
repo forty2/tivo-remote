@@ -1,94 +1,151 @@
-import { EventEmitter } from 'events';
+/* eslint-disable flowtype/no-types-missing-file-annotation */
+
+import events from 'events';
 
 import MessageSocket from 'message-socket';
 
+import type { Ircode, KeyboardCode } from './KeyTypes';
+
 const debug = require('debug')('tivo-remote:conn');
 
+const { EventEmitter } = events;
+
+const $friendlyName = new WeakMap();
+const $tsn          = new WeakMap();
+const $ip           = new WeakMap();
+const $socket       = new WeakMap();
+
+function sendTiVoCommand(cmd, args) {
+    $socket.get(this).send(`${cmd} ${args}\r`);
+}
+
+function handleIncoming(resp) {
+    debug(`Incoming: ${resp}`);
+    if (typeof resp === 'undefined') return;
+
+    const response = resp.replace(/\r$/, '');
+
+    // possible response messages:
+    /*
+        * INVALID_COMMAND : couldn't parse the last command you sent. TODO: where to publish this?
+        * MISSING_TELEPORT_NAME : you tried to teleport, but left out the name
+        * LIVETV_READY : you teleported to LIVETV, and it's now ready for further commands
+        * CH_STATUS num num reason : channel status
+        * CH_FAILED reason : channel change failed
+        *
+        * per v1.1 protocol doc, no other responses are sent.
+        */
+
+    let match;
+    if (response === 'MISSING_TELEPORT_NAME') {
+        this.emit('error', { reason: response });
+    } else if ((match = response.match(/^CH_FAILED ([a-zA-Z_-]+)$/))) {
+        const [, reason] = match;
+        this.emit('error', { reason });
+    } else if (response === 'LIVETV_READY') {
+        this.emit('livetvready', { isReady: true });
+    } else if ((match = response.match(/^CH_STATUS (\d{1,4}) (?:(\d{1,4}) )?([a-zA-Z_-]+)$/))) {
+        const [, channel, subchannel, reason] = match;
+        this.emit('channelchange', { success: true, channel, subchannel, reason });
+    }
+}
+
+/**
+  */
+type TeleportDestination = "TIVO" | "LIVETV" | "GUIDE" | "NOWPLAYING";
+
+/**
+ */
 class TiVoRemote extends EventEmitter {
-    constructor(service) {
+    constructor(
+        service: {
+            name: string,
+            txtRecord: { TSN: string },
+            addresses: string[],
+            port: number
+        }
+    ) {
         super();
 
-        this._friendlyName = service.name;
-        this._tsn          = service.txtRecord.TSN;
-        this._ip           = service.addresses[0];
+        $friendlyName.set(this, service.name);
+        $tsn.set(this, service.txtRecord.TSN);
+        $ip.set(this, service.addresses[0]);
 
-        const socket = this._socket =
-            new MessageSocket(this._ip, service.port, /.*\r/);
+        const socket = new MessageSocket($ip.get(this), service.port, /.*\r/);
+        $socket.set(this, socket);
 
         socket
             .asObservable()
-            .subscribe(::this._handleIncoming);
+            .subscribe((...args) => {
+                /* eslint-disable flowtype-errors/show-errors */
+                this::handleIncoming(...args);
+                /* eslint-enable flowtype-errors/show-errors */
+            });
     }
 
-    sendIrcode(code) {
-        this._sendTiVoCommand('IRCODE', code)
+    /**
+     * Send an IR code to the DVR. The list of supported codes
+     * is very long; For details, see [Ircode](KEYS.md#ircode)
+     */
+    sendIrcode(code: Ircode) {
+        this::sendTiVoCommand('IRCODE', code);
     }
 
-    sendKeyboardCode(code) {
-        this._sendTiVoCommand('KEYBOARD', code)
+    /**
+     * Send a key code to the DVR. The list of supported codes
+     * is very long; For details, see [KeyboardCode](KEYS.md#keyboardcode)
+     */
+    sendKeyboardCode(code: KeyboardCode) {
+        this::sendTiVoCommand('KEYBOARD', code);
     }
 
-    teleport(destination) {
-        this._sendTiVoCommand('TELEPORT', destination)
+    /**
+     * "Teleport" to a given location in the DVR UI.
+     */
+    teleport(destination: TeleportDestination) {
+        this::sendTiVoCommand('TELEPORT', destination);
     }
 
-    setChannel(channel, forced = false) {
-        this._sendTiVoCommand(forced ? 'FORCCH': 'SETCH', channel)
+    /**
+     * Tune the DVR to the given channel.  If the forced flag is set,
+     * the DVR will be tuned even if a recording is in progress
+     * (canceling the recording).
+     */
+    setChannel(channel: string, forced: ?boolean = false) {
+        this::sendTiVoCommand(forced ? 'FORCCH' : 'SETCH', channel);
     }
 
+    /**
+     * Once you're finished with the device object, call deinit() to close
+     * the underlying network connection.
+     */
     deinit() {
-        this._socket.close();
+        $socket.get(this).close();
     }
 
-    _sendTiVoCommand(cmd, args) {
-        this._socket.send(`${cmd} ${args}\r`);
+    /**
+     * The name of this device.
+     */
+    get name(): string {
+        return $friendlyName.get(this);
     }
 
-    _handleIncoming(response) {
-        debug(`Incoming: ${response}`);
-        if (typeof response === 'undefined') return;
-
-        response = response.replace(/\r$/, '');
-
-        // possible response messages:
-        /*
-            * INVALID_COMMAND : couldn't parse the last command you sent. TODO: where to publish this?
-            * MISSING_TELEPORT_NAME : you tried to teleport, but left out the name
-            * LIVETV_READY : you teleported to LIVETV, and it's now ready for further commands
-            * CH_STATUS num num reason : channel status
-            * CH_FAILED reason : channel change failed
-            *
-            * per v1.1 protocol doc, no other responses are sent.
-            */
-
-        let match;
-        if (response === 'MISSING_TELEPORT_NAME') {
-            this.emit('error', { reason: response });
-        } else if ((match = response.match(/^CH_FAILED ([a-zA-Z_-]+)$/))) {
-            let [,reason] = match;
-            this.emit('error', { reason: response });
-        } else if (response === 'LIVETV_READY') {
-            this.emit('livetvready', { isReady: true });
-        } else if ((match = response.match(/^CH_STATUS (\d{1,4}) (?:(\d{1,4}) )?([a-zA-Z_-]+)$/))) {
-            let [, channel, subchannel, reason] = match;
-            this.emit('channelchange', { success: true, channel, subchannel, reason });
-        }
+    /**
+     * The unique ID of this device.
+     */
+    get id(): string {
+        return $tsn.get(this);
     }
 
-    get name() {
-        return this._friendlyName;
-    }
-
-    get id() {
-        return this._tsn;
-    }
-
-    get ip() {
-        return this._ip;
+    /**
+     * The IP address of this device.
+     */
+    get ip(): string {
+        return $ip.get(this);
     }
 }
 
 export {
-    TiVoRemote as default
-}
+    TiVoRemote as default,
+};
 

@@ -2,18 +2,53 @@
   "name": "tivo-remote",
   "version": "1.0.2",
   "description": "Control your TiVo DVR over the network",
-  "main": "dist/index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "babel src -d dist -D",
-    "example": "node ./dist/example.js",
-    "prepublish": "npm run build"
+  "license": "MIT",
+  "repository": "forty2/tivo-remote",
+  "bugs": {
+    "url": "https://github.com/forty2/tivo-remote/issues"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/forty2/tivo-remote.git"
+  "main": "index.js",
+  "author": {
+    "name": "Zach Bean",
+    "email": "zb@forty2.com",
+    "url": "github.com/forty2"
+  },
+  "engines": {
+    "node": ">=6"
+  },
+  "files": [
+    "dist",
+    "index.js"
+  ],
+  "scripts": {
+    "test": "jest",
+    "example": "node ./dist/example.js",
+    "coverage": "npm test -- --coverage",
+    "postcoverage": "opn coverage/lcov-report/index.html",
+    "lint": "eslint src test",
+    "flow": "flow check",
+    "docs": "documentation readme --shallow src/index.js src/TiVoRemote.js --section=API && documentation readme --readme-file KEYS.md -s \"Supported Keys\" src/KeyTypes.js",
+    "clean": "rimraf dist",
+    "prebuild": "npm run docs && npm run clean",
+    "build": "babel src -d dist -D",
+    "watch": "npm-watch",
+    "patch": "npm version patch && npm publish",
+    "minor": "npm version minor && npm publish",
+    "major": "npm version major && npm publish",
+    "prepublish": "npm run lint && npm test && npm run build",
+    "postpublish": "git push origin master --follow-tags"
+  },
+  "watch": {
+    "test": "{src,test}/*.js",
+    "lint": "{src,test}/*.js",
+    "build": "src"
+  },
+  "jest": {
+    "testRegex": "/test/.*",
+    "testEnvironment": "node"
   },
   "keywords": [
+    "tivo-remote",
     "TiVo",
     "DVR",
     "remote",
@@ -21,43 +56,29 @@
     "home",
     "automation"
   ],
-  "author": "Zach Bean <zb@forty2.com>",
-  "license": "MIT",
-  "devDependencies": {
-    "babel-core": "^6.14.0",
-    "babel-plugin-syntax-function-bind": "^6.13.0",
-    "babel-plugin-transform-function-bind": "^6.8.0",
-    "babel-plugin-transform-object-rest-spread": "^6.8.0",
-    "babel-preset-env": "^1.4.0"
-  },
-  "babel": {
-    "sourceMaps": "inline",
-    "presets": [
-      [
-        "env",
-        {
-          "targets": {
-            "node": 6
-          }
-        }
-      ]
-    ],
-    "plugins": [
-      "syntax-function-bind",
-      "transform-function-bind",
-      "transform-object-rest-spread"
-    ]
-  },
-  "engines": {
-    "node": ">=6.0"
-  },
-  "bugs": {
-    "url": "https://github.com/forty2/tivo-remote/issues"
-  },
-  "homepage": "https://github.com/forty2/tivo-remote#readme",
   "dependencies": {
     "debug": "^2.6.4",
     "mdns": "^2.3.3",
     "message-socket": "^1.0.3"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.18.0",
+    "babel-eslint": "^7.1.1",
+    "babel-jest": "^20.0.0",
+    "babel-preset-env": "^1.1.8",
+    "babel-preset-flow": "^6.23.0",
+    "babel-plugin-transform-function-bind": "^6.8.0",
+    "babel-plugin-transform-object-rest-spread": "^6.8.0",
+    "documentation": "4.0.0-rc.1",
+    "eslint": "^4.0.0",
+    "eslint-config-airbnb-base": "^11.0.1",
+    "eslint-plugin-flowtype": "^2.29.2",
+    "eslint-plugin-flowtype-errors": "^3.0.0",
+    "eslint-plugin-import": "^2.2.0",
+    "flow-bin": "^0.50.0",
+    "jest-cli": "^20.0.0",
+    "npm-watch": "^0.2.0",
+    "opn-cli": "^3.1.0",
+    "rimraf": "^2.6.1"
   }
 }
