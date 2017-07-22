@@ -115,6 +115,16 @@ The IP address of this device.
 
 Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
 
+## Migration
+
+### 1.0 -> 2.0
+
+The difference between 1.0 and 2.0 shouldn't be noticeable to most users, even though it is technically an API break.  Version 1.0 exposed a module compiled with Babel such that it was necessary to use
+```js
+const TiVoDiscovery = require('tivo-remote').default
+```
+if the including project was not also compiled with Babel.  Version 2.0 resolves this so both `import` and `require` work as their respective users expect.
+
 ## Compatibility
 
 `tivo-remote` is built to support Node.js version 6.0 or higher.
