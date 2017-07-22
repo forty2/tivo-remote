@@ -1,5 +1,7 @@
 # tivo-remote
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/forty2/tivo-remote.svg)](https://greenkeeper.io/)
+
 > Control your TiVo DVR over the network
 
 [![Generated with nod](https://img.shields.io/badge/generator-nod-2196F3.svg?style=flat-square)](https://github.com/diegohaz/nod)
