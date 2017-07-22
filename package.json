@@ -1,6 +1,6 @@
 {
   "name": "tivo-remote",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Control your TiVo DVR over the network",
   "license": "MIT",
   "repository": "forty2/tivo-remote",
