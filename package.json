@@ -57,7 +57,7 @@
     "automation"
   ],
   "dependencies": {
-    "debug": "^2.6.4",
+    "debug": "^4.1.1",
     "mdns": "^2.3.3",
     "message-socket": "^1.0.3"
   },
