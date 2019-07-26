@@ -3669,12 +3669,13 @@ mdast-util-toc@^2.0.0:
     mdast-util-to-string "^1.0.2"
     unist-util-visit "^1.1.0"
 
-mdns@^2.3.3:
-  version "2.3.3"
-  resolved "https://registry.yarnpkg.com/mdns/-/mdns-2.3.3.tgz#bbc6ad5407a230133d62e0da692f29f0bd49728e"
+mdns@^2.5.1:
+  version "2.5.1"
+  resolved "https://registry.yarnpkg.com/mdns/-/mdns-2.5.1.tgz#f66d199de26dc372740f9c84c9b95db432a4fc46"
+  integrity sha512-JglS7Ed3Yf0BCpyC7LXA1MUrumMV8jj4g67nT3+m886SFYllz2HWBg8ObywFXWbBSv5gW0meMOOS4vVa2jZGCw==
   dependencies:
     bindings "~1.2.1"
-    nan "~2.3.0"
+    nan "^2.14.0"
 
 meow@^3.7.0:
   version "3.7.0"
@@ -3819,7 +3820,12 @@ mute-stream@0.0.7:
   version "0.0.7"
   resolved "https://registry.yarnpkg.com/mute-stream/-/mute-stream-0.0.7.tgz#3075ce93bc21b8fab43e1bc4da7e8115ed1e7bab"
 
-nan@^2.3.0, nan@~2.3.0:
+nan@^2.14.0:
+  version "2.14.0"
+  resolved "https://registry.yarnpkg.com/nan/-/nan-2.14.0.tgz#7818f722027b2459a86f0295d434d1fc2336c52c"
+  integrity sha512-INOFj37C7k3AfaNTtX8RhsTw7qRy7eLET14cROi9+5HAVbbHuIWUHEauBv5qT4Av2tWasiTY1Jw6puUNqRJXQg==
+
+nan@^2.3.0:
   version "2.3.5"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.3.5.tgz#822a0dc266290ce4cd3a12282ca3e7e364668a08"
 
